@@ -1,5 +1,5 @@
 import re
-
+from pprint import pprint as pp
 from bs4 import BeautifulSoup
 
 data = {}
@@ -54,9 +54,13 @@ images = (soup
           .find("swiper-container", class_="u-swiper-pdp")
           .find_all("swiper-slide")
           )
+img_links = []
 for image in images:
     link = image.find("img").attrs["src"]
-    print(link)
+    img_links.append(link)
+
+desc = soup.find("div", id="description-tabs-wrapper").find("span", {"data-test-id": "block__tab-content"})
+print(desc.text.strip())
 
 data["title"] = soup.h1.text.strip()
 data["price"] = re.sub(r'\s+','', price.text)
@@ -64,5 +68,6 @@ data["available_amount"] =  aa_res
 data["discount"] = discount.text.strip()
 data["size"] = size.text.strip()
 data["rating"] = rating.text.strip()[:3]
+data["images"] = img_links
 
-print(data)
+pp(data)
