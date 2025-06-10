@@ -1,13 +1,19 @@
 import requests
-from bs4 import BeautifulSoup
-
-headers = {
-    "User-Agent": "Mozilla/5.0"
-}
-url = "https://uzum.uz/uz/product/new-balance-erkaklar-krossovkalari-1552187?skuId=5109825"
-response = requests.get(url, headers=headers)
+from soup import parse_info
 
 
-soup = BeautifulSoup(response.text, 'html.parser')
-with open("index.html", "w") as file:
-    file.write(soup.prettify())
+def main():
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+
+    # url = "https://uzum.uz/uz/product/new-balance-erkaklar-krossovkalari-1552187?skuId=5109825"
+    url = "https://uzum.uz/uz/product/erkaklar-tapochkasi-ekocharmdan-toq-yashil---275-1706132?skuId=5833754"
+
+    print("sending request...")
+    response = requests.get(url, headers=headers)
+    res = parse_info(response.text)
+    print(res)
+
+if __name__ == "__main__":
+    main()

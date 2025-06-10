@@ -1,88 +1,77 @@
-import json
 import re
 from pprint import pprint as pp
 from bs4 import BeautifulSoup
 
-data = {}
+from helpers import extract_num
+from brawser import get_info_by_size
 
-with open("index.html", "r") as f:
-    soup = BeautifulSoup(f, "html.parser")
+def parse_info(content: str) -> dict:
+    print("started parsing data from request...")
+    data = {}
+    soup = BeautifulSoup(content, "html.parser")
 
-price = soup.find(class_="sell-price").find("span", class_="HeadlineMBold")
-available_amount = (soup
-                    .find("div", class_="banner")
-                    .find("div", class_="text-wrapper")
-                    .find("span", {"data-test-id": "text__product-banner"})
-                    )
-aa =  re.sub(r'\s+','', available_amount.text)
-aa_res = ""
-for i in aa:
-    if i.isdigit():
-        aa_res = aa_res + i
+    price = soup.find(class_="sell-price").find("span", class_="HeadlineMBold")
+    available_amount = (soup
+                        .find("div", class_="banner")
+                        .find("div", class_="text-wrapper")
+                        .find("span", {"data-test-id": "text__product-banner"})
+                        )
+    aa =  re.sub(r'\s+','', available_amount.text)
+    aa_res = extract_num(aa)
 
 
-discount = soup.find("div", class_="badge").find("span", class_="BodyMRegular")
-size = (soup
-        .find("div", class_="content-right")
-        .find("div", class_="sku-selectors")
-        .find("div", class_="characteristic-title-and-value")
-        .find("span", {"data-test-id": "text__selected-sku-value"})
-        )
+    discount = soup.find("div", class_="badge").find("span", class_="BodyMRegular")
 
-banner = soup.find_all("div", class_="banner")
-for i in range(0, len(banner)):
-    texts = banner[i].find("div", class_="text-wrapper").find("span", {"data-test-id": "text__product-banner"})
-    result = ""
-    for t in texts.text.strip():
-        if t.isdigit():
-            result += t
+    banner = soup.find_all("div", class_="banner")
+    for i in range(0, len(banner)):
+        texts = banner[i].find("div", class_="text-wrapper").find("span", {"data-test-id": "text__product-banner"})
+        result = extract_num(texts.text.strip())
 
-    if i == 0:
-        data["available_amount"] = result
-    else:
-        data["sold_count"] = result
+        if i == 0:
+            data["available_amount"] = result
+        else:
+            data["sold_count"] = result
 
-rating = (soup
-          .find("div", class_="stats")
-          .find("div", class_="rating")
-          .find("a", class_="rating-value")
-          )
+    rating = (soup
+              .find("div", class_="stats")
+              .find("div", class_="rating")
+              .find("a", class_="rating-value")
+              )
 
-images = (soup
-          .find("div", class_="content-wrapper")
-          .find("div", class_="content-left")
-          .find("div", class_="swiper-slider-wrapper")
-          .find("swiper-container", class_="u-swiper-pdp")
-          .find_all("swiper-slide")
-          )
-img_links = []
-for image in images:
-    link = image.find("img").attrs["src"]
-    img_links.append(link)
+    images = (soup
+              .find("div", class_="content-wrapper")
+              .find("div", class_="content-left")
+              .find("div", class_="swiper-slider-wrapper")
+              .find("swiper-container", class_="u-swiper-pdp")
+              .find_all("swiper-slide")
+              )
+    img_links = []
+    for image in images:
+        link = image.find("img").attrs["src"]
+        img_links.append(link)
 
-seller = (soup
-          .find("div", class_="seller")
-          .find("div", class_="info")
-          )
-seller_title = seller.find("div", class_="info-container").find("h3").text.strip()
-seller_image = seller.find("img").attrs["src"]
-seller_rating = seller.find("div", class_="rating").find("span", {"data-test-id":"text__shop-rating-value"}).text.strip()
+    seller = (soup
+              .find("div", class_="seller")
+              .find("div", class_="info")
+              )
+    seller_title = seller.find("div", class_="info-container").find("h3").text.strip()
+    seller_image = seller.find("img").attrs["src"]
+    seller_rating = seller.find("div", class_="rating").find("span", {"data-test-id":"text__shop-rating-value"}).text.strip()
 
-main_script = soup.find('script', type="application/ld+json").text
-json_data = json.loads(main_script)
-pp(json_data)
+    data["title"] = soup.h1.text.strip()
+    data["rating"] = rating.text.strip()[:3]
+    data["images"] = img_links
+    data["seller"] = {
+        "title": seller_title,
+        "img": seller_image,
+        "rating": seller_rating
+    }
+    data["price"] = re.sub(r'\s+','', price.text)
+    data["available_amount"] =  aa_res
+    data["discount"] = discount.text.strip()
 
-data["title"] = soup.h1.text.strip()
-data["rating"] = rating.text.strip()[:3]
-data["images"] = img_links
-data["seller"] = {
-    "title": seller_title,
-    "img": seller_image,
-    "rating": seller_rating
-}
-data["price"] = re.sub(r'\s+','', price.text)
-data["available_amount"] =  aa_res
-data["discount"] = discount.text.strip()
-data["size"] = size.text.strip()
+    print("started playwright to parse data by product size")
+    data["products"] = get_info_by_size()
 
-# pp(data)
+    return data
+
