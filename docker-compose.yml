@@ -6,8 +6,8 @@ services:
       context: ./bot
       dockerfile: Dockerfile
     restart: on-failure
-    environment:
-      - BOT_TOKEN=$BOT_TOKEN
+    depends_on:
+      - scraper
     networks:
       - parser_net
 
