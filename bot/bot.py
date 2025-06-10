@@ -50,6 +50,11 @@ async def parser_handler(message: Message, state: FSMContext) -> None:
 
     await message.answer("so'rov yuborilmoqda iltimos kutib turing...")
     resp = requests.post(url="http://scraper:8000/parse_product", json={"url": url})
+    if resp.status_code != 200:
+        await message.answer(f"parsing serviceda muammo yuzaga keldi!\n{resp.text=}")
+        await state.clear()
+        return
+
     data = resp.json()
 
     product = data.get("data", {})
