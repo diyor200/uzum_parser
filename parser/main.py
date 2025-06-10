@@ -18,6 +18,7 @@ def parse_product(product: ProductURL):
 
 def main(url: str) -> dict:
     headers = {
+        "Content-Type": "application/json",
         "User-Agent": "Mozilla/5.0"
     }
 
