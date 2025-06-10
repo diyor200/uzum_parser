@@ -11,15 +11,6 @@ def parse_info(content: str) -> dict:
     soup = BeautifulSoup(content, "html.parser")
 
     price = soup.find(class_="sell-price").find("span", class_="HeadlineMBold")
-    available_amount = (soup
-                        .find("div", class_="banner")
-                        .find("div", class_="text-wrapper")
-                        .find("span", {"data-test-id": "text__product-banner"})
-                        )
-    aa =  re.sub(r'\s+','', available_amount.text)
-    aa_res = extract_num(aa)
-
-
     discount = soup.find("div", class_="badge").find("span", class_="BodyMRegular")
 
     banner = soup.find_all("div", class_="banner")
@@ -67,7 +58,6 @@ def parse_info(content: str) -> dict:
         "rating": seller_rating
     }
     data["price"] = re.sub(r'\s+','', price.text)
-    data["available_amount"] =  aa_res
     data["discount"] = discount.text.strip()
 
     print("started playwright to parse data by product size")

@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    restart: on-failure
+    environment:
+      - BOT_TOKEN=$BOT_TOKEN
+    networks:
+      - parser_net
+
+  scraper:
+    build:
+      context: ./parser
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    restart: on-failure
+    networks:
+      - parser_net
+
+networks:
+  parser_net:
