@@ -1,3 +1,4 @@
+import json
 import re
 from pprint import pprint as pp
 from bs4 import BeautifulSoup
@@ -59,15 +60,29 @@ for image in images:
     link = image.find("img").attrs["src"]
     img_links.append(link)
 
-desc = soup.find("div", id="description-tabs-wrapper").find("span", {"data-test-id": "block__tab-content"})
-print(desc.text.strip())
+seller = (soup
+          .find("div", class_="seller")
+          .find("div", class_="info")
+          )
+seller_title = seller.find("div", class_="info-container").find("h3").text.strip()
+seller_image = seller.find("img").attrs["src"]
+seller_rating = seller.find("div", class_="rating").find("span", {"data-test-id":"text__shop-rating-value"}).text.strip()
+
+main_script = soup.find('script', type="application/ld+json").text
+json_data = json.loads(main_script)
+pp(json_data)
 
 data["title"] = soup.h1.text.strip()
+data["rating"] = rating.text.strip()[:3]
+data["images"] = img_links
+data["seller"] = {
+    "title": seller_title,
+    "img": seller_image,
+    "rating": seller_rating
+}
 data["price"] = re.sub(r'\s+','', price.text)
 data["available_amount"] =  aa_res
 data["discount"] = discount.text.strip()
 data["size"] = size.text.strip()
-data["rating"] = rating.text.strip()[:3]
-data["images"] = img_links
 
-pp(data)
+# pp(data)
