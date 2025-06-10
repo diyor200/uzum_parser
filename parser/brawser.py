@@ -9,6 +9,7 @@ def get_info_by_size() -> list:
         browser = p.chromium.launch(headless=True, slow_mo=100)
         page = browser.new_page()
         page.goto("https://uzum.uz/uz/product/new-balance-erkaklar-krossovkalari-1552187?skuId=5109824")
+        page.wait_for_timeout(2000)
 
         # Wait for sizes to load
         page.wait_for_selector('.sku-radio-text')
