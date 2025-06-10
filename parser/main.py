@@ -1,3 +1,5 @@
+import asyncio
+
 import requests
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
@@ -31,3 +33,5 @@ def main(url: str) -> dict:
 
     return res
 
+if __name__ == "__main__":
+    print(main(url="https://uzum.uz/uz/product/new-balance-erkaklar-krossovkalari-1552187"))

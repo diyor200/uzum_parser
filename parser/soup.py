@@ -18,9 +18,7 @@ def parse_info(content: str) -> dict:
         texts = banner[i].find("div", class_="text-wrapper").find("span", {"data-test-id": "text__product-banner"})
         result = extract_num(texts.text.strip())
 
-        if i == 0:
-            data["available_amount"] = result
-        else:
+        if i > 0:
             data["sold_count"] = result
 
     rating = (soup

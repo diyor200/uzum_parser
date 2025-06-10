@@ -63,7 +63,6 @@ async def parser_handler(message: Message, state: FSMContext) -> None:
         f"⭐️:️ Reyting: {product.get('rating')}\n"
         f"💸: Narx: {product.get('price')} so'm {product.get('discount')}\n"
         f"🏬: Sotuuvchi: {product['seller']['title']} (:star:️ {product['seller']['rating']})\n"
-        f"📦: Qolgan mahsulotlar: {product.get('available_amount')}\n"
         f"🛍: Sotuvlar soni (hafta): {product.get('sold_count')}\n\n"
         "<b>📏: O'lchamlar va mavjud soni:</b>\n"
     )
