@@ -11,7 +11,7 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message, InputFile
+from aiogram.types import Message, FSInputFile
 
 # Bot token can be obtained via https://t.me/BotFather
 TOKEN = "7274490167:AAFlQOx1U4BNcwe-3uJ8D6H7ZYwpkTrwI8c"
@@ -64,7 +64,7 @@ async def parser_handler(message: Message, state: FSMContext) -> None:
         # If too long, send as a file
         with open("parsed_product.json", "w", encoding="utf-8") as f:
             f.write(json_text)
-        await message.answer_document(InputFile("parsed_product.json"))
+        await message.answer_document(FSInputFile("parsed_product.json"))
     else:
         # Otherwise send directly
         await message.answer(f"<pre>{json_text}</pre>", parse_mode="HTML")
