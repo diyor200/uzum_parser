@@ -1,8 +1,8 @@
-import asyncio
-
 import requests
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from pydantic import BaseModel
+
+from parser.helpers import remove_query
 from soup import parse_info
 
 app = FastAPI()
@@ -29,7 +29,7 @@ def main(url: str) -> dict:
 
     print("sending request...")
     response = requests.get(url, headers=headers)
-    res = parse_info(response.text)
+    res = parse_info(response.text, remove_query(url))
 
     return res
 
