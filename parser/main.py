@@ -2,7 +2,7 @@ import requests
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from parser.helpers import remove_query
+from helpers import remove_query
 from soup import parse_info
 
 app = FastAPI()
