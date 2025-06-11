@@ -1,11 +1,11 @@
 import re
-from pprint import pprint as pp
+
 from bs4 import BeautifulSoup
 
-from helpers import extract_num
-from brawser import get_info_by_size
+from parser.helpers import extract_num
 
-def parse_info(content: str, url: str) -> dict:
+
+def parse_static_info(content: str) -> dict:
     print("started parsing data from request...")
     data = {}
     soup = BeautifulSoup(content, "html.parser")
@@ -58,8 +58,4 @@ def parse_info(content: str, url: str) -> dict:
     data["price"] = re.sub(r'\s+','', price.text)
     data["discount"] = discount.text.strip()
 
-    print("started playwright to parse data by product size")
-    data["products"] = get_info_by_size(url)
-
     return data
-
