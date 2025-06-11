@@ -21,8 +21,11 @@ def parse(url: str) -> dict:
         result["title"] = page.locator("h1").inner_text().strip()
 
         page.wait_for_selector('.TitleLBold.discount-price .currency.price', timeout=10000)
-        price = page.locator('.TitleLBold.discount-price .currency.price').inner_text()
-        result["price"] = re.sub(r'\s+', '', price)
+        with_uzum_card_price = page.locator('.TitleLBold.discount-price .currency.price').inner_text()
+        result["with_uzum_card_price"] = extract_num(re.sub(r'\s+', '', with_uzum_card_price))
+
+        with_another_card_price = page.locator('.BodyMRegular.payment-option .currency.alternative-price').inner_text()
+        result["with_another_card_price"] = extract_num(re.sub(r'\s+', '', with_another_card_price))
 
         # Wait and get discount
         discount = page.locator('.TitleLBold.discount-price .BodySRegular.discount').inner_text()
@@ -39,7 +42,11 @@ def parse(url: str) -> dict:
             result["sold_count"] = extract_num(text)
 
         images = page.locator("swiper-slide img")
-        img_links = [img.get_attribute("src") for img in images.all()]
+        img_links = [
+            img.get_attribute("src")
+            for img in images.all()
+            if img.get_attribute("src") and not img.get_attribute("src").endswith(".svg")
+        ]
         result["images"] = img_links
 
         seller_section = page.locator(".seller .info")
@@ -53,26 +60,29 @@ def parse(url: str) -> dict:
         size_count = size_elements.count()
         print(f"Found {size_count} sizes")
 
-        for i in range(size_count):
-            try:
-                size_el = size_elements.nth(i)
-                size_text = size_el.locator('span').inner_text().strip()
+        if size_count == 0:
+            print("⚠️ No sizes found — skipping size parsing.")
+        else:
+            for i in range(size_count):
+                try:
+                    size_el = size_elements.nth(i)
+                    size_text = size_el.locator('span').inner_text().strip()
 
-                size_el.scroll_into_view_if_needed()
-                size_el.click(timeout=5000, force=True)
-                page.wait_for_selector('.banners .banner')
+                    size_el.scroll_into_view_if_needed()
+                    size_el.click(timeout=5000, force=True)
+                    page.wait_for_selector('.banners .banner')
 
-                banners = page.locator('.banners .banner')
-                banner_text = banners.nth(0).locator('[data-test-id="text__product-banner"]').inner_text().strip()
+                    banners = page.locator('.banners .banner')
+                    banner_text = banners.nth(0).locator('[data-test-id="text__product-banner"]').inner_text().strip()
 
-                data = {
-                    "size": size_text,
-                    "available_count": extract_num(banner_text)
-                }
-                res.append(data)
+                    data = {
+                        "size": size_text,
+                        "available_count": extract_num(banner_text)
+                    }
+                    res.append(data)
 
-            except Exception as e:
-                print(f"Error on size {i}: {e}")
+                except Exception as e:
+                    print(f"Error on size {i}: {e}")
 
         browser.close()
 

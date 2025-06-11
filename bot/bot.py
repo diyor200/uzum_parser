@@ -61,8 +61,9 @@ async def parser_handler(message: Message, state: FSMContext) -> None:
     text = (
         f"<b>{product.get('title')}</b>\n"
         f"⭐️:️ Reyting: {product.get('rating')}\n"
-        f"💸: Narx: {product.get('price')} so'm {product.get('discount')}\n"
-        f"🏬: Sotuuvchi: {product['seller']['title']} (:star:️ {product['seller']['rating']})\n"
+        f"💡: Chegirma: {product.get('discount')}\n"
+        f"💸: Narx:\n\tUzum kartasi bilan to'lansa: {product.get('with_uzum_card_price')} so'm\n\tBoshqa karta bilan to'lansa: {product.get('with_another_card_price')}\n"
+        f"🏬: Sotuvchi: {product['seller']['title']} (⭐️:️ {product['seller']['rating']})\n"
         f"🛍: Sotuvlar soni (hafta): {product.get('sold_count')}\n\n"
         "<b>📏: O'lchamlar va mavjud soni:</b>\n"
     )
