@@ -31,21 +31,21 @@
 #                 print(f"[{i+1}] Clicking category: ", item.inner_text())
 #                 item.click()
 #
-#                 # Wait for product block
-#                 try:
-#                     page.wait_for_selector("div#category-products", timeout=5000)
-#                 except TimeoutError:
-#                     print("category-products not found")
-#
-#                 # Handle optional notification
-#                 try:
-#                     button = page.query_selector("#notification button.ui-button.solid--red")
-#                     if button:
-#                         print("Clicking notification close button...")
-#                         button.click()
-#                 except Exception as e:
-#                     print("Notification button error:", e)
-#
+                # # Wait for product block
+                # try:
+                #     page.wait_for_selector("div#category-products", timeout=5000)
+                # except TimeoutError:
+                #     print("category-products not found")
+                #
+                # # Handle optional notification
+                # try:
+                #     button = page.query_selector("#notification button.ui-button.solid--red")
+                #     if button:
+                #         print("Clicking notification close button...")
+                #         button.click()
+                # except Exception as e:
+                #     print("Notification button error:", e)
+
 #                 time.sleep(2)
 #
 #             except Exception as e:
@@ -59,7 +59,6 @@
 # if __name__ == "__main__":
 #     main()
 import time
-from itertools import product
 from urllib.parse import urljoin
 from playwright.sync_api import sync_playwright, TimeoutError
 
@@ -103,19 +102,19 @@ def main():
 def scrape_category_with_pagination(page, category_url):
     products = []
     current_page = 1
+    adult_button = False
+
     while True:
         paginated_url = f"{category_url}?currentPage={current_page}"
         print(f" → Page {current_page}: {paginated_url}")
         page.goto(paginated_url)
 
         # check notification button
+        # Wait for product block
         try:
-            button = page.query_selector("#notification button.ui-button.solid--red")
-            if button:
-                print("Clicking notification close button...")
-                button.click()
-        except Exception as e:
-            print("Notification button error:", e)
+            page.wait_for_selector("div#category-products", timeout=5000)
+        except TimeoutError:
+            print("category-products not found")
 
         # Check for the "no products" block
         try:
@@ -124,6 +123,18 @@ def scrape_category_with_pagination(page, category_url):
             break
         except TimeoutError:
             pass  # No empty block, continue
+
+            # Handle optional notification
+            if not adult_button:
+                try:
+                    button = page.query_selector("#notification button.ui-button.solid--red")
+                    if button:
+                        print("Clicking notification close button...")
+                        button.click()
+                        adult_button = True
+                        continue
+                except Exception as e:
+                    print("Notification button error:", e)
 
         # Extract product cards
         product_cards = page.query_selector_all("div.catalog-product")
