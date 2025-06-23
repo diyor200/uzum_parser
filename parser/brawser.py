@@ -10,11 +10,11 @@ def parse(url: str) -> dict:
     result = {}
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=False)
         page = browser.new_page()
         print("Opening browser...")
         page.goto(url)
-        page.wait_for_timeout(5000)
+        # page.wait_for_timeout(5000)
 
         # parse static data
         page.wait_for_selector("h1")
@@ -89,3 +89,59 @@ def parse(url: str) -> dict:
     result["products"] = res
     return result
 
+def parse_product(page, url: str):
+    page.goto(url, wait_until="load")
+    result = {}
+
+    result["url"] = url
+    result["title"] = page.locator("h1").inner_text().strip()
+
+    try:
+        price = page.locator('.TitleLBold.discount-price .currency.price').inner_text()
+        result["with_uzum_card_price"] = extract_num(price)
+    except Exception:
+        result["with_uzum_card_price"] = None
+
+    try:
+        alt_price = page.locator('.BodyMRegular.payment-option .currency.alternative-price').inner_text()
+        result["with_another_card_price"] = extract_num(alt_price)
+    except Exception:
+        result["with_another_card_price"] = None
+
+    try:
+        discount = page.locator('.TitleLBold.discount-price .BodySRegular.discount').inner_text().strip()
+        result["discount"] = discount
+    except Exception:
+        result["discount"] = None
+
+    try:
+        rating = page.locator(".stats .rating .rating-value").inner_text().strip()
+        result["rating"] = rating
+    except Exception:
+        result["rating"] = None
+
+    # Sold count
+    try:
+        banners = page.locator('.banners .banner')
+        banner_text = banners.nth(0).locator('[data-test-id="text__product-banner"]').inner_text().strip()
+        result["available_count"] = extract_num(banner_text)
+    except Exception:
+        result["available_count"] = None
+
+    # Images
+    try:
+        image_tags = page.locator("swiper-slide img")
+        result["images"] = [
+            img.get_attribute("src") for img in image_tags.all()
+            if img.get_attribute("src") and not img.get_attribute("src").endswith(".svg")
+        ]
+    except Exception:
+        result["images"] = []
+
+    return result
+
+if __name__ == "__main__":
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        page = browser.new_page()
+        print(parse_product(page,"https://uzum.uz/uz/product/1641058?skuId=5504808"))
