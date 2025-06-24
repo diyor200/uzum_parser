@@ -6,6 +6,7 @@ import time
 from typing import Dict, List, Optional, Any
 from urllib.parse import urlparse, parse_qs
 
+from parser.utils import send_to_telegram
 from utils import extract_num, to_safe_url
 
 BASE_URL = "https://uzum.uz"
@@ -217,6 +218,9 @@ def scrape_category_with_pagination(page, category_url, ctx):
 
     print("beginning parsing products ...")
     while True:
+        if current_page == 2:
+            break
+
         paginated_url = f"{category_url}?currentPage={current_page}"
         print(f" → Page {current_page}: {paginated_url}")
         page.goto(paginated_url, wait_until="load")
@@ -262,12 +266,17 @@ def scrape_category_with_pagination(page, category_url, ctx):
                 print("Error parsing product:", e)
                 continue
 
+            if i == 4:
+                break
+
         current_page += 1
         time.sleep(1)
 
     with open("product.json", "w", encoding="utf-8") as f:
         json.dump(products, f, ensure_ascii=False, indent=2)
 
+
+    send_to_telegram()
 
 if __name__ == "__main__":
     main()
