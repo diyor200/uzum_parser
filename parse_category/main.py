@@ -1,6 +1,6 @@
 import json
 from urllib.parse import urljoin
-from playwright.sync_api import sync_playwright, TimeoutError
+from playwright.async_api import async_playwright, TimeoutError
 
 import time
 from typing import Dict, List, Optional, Any
@@ -180,7 +180,7 @@ def parse_product(url: str, ctx) -> Dict[str, Any]:
     return result
 
 def main():
-    with sync_playwright() as pw:
+    with async_playwright() as pw:
         browser = pw.chromium.launch(headless=False, slow_mo=100)
 
         context = browser.new_context()
@@ -209,6 +209,7 @@ def main():
                 print("Error clicking category:", e)
 
         browser.close()
+
 
 def scrape_category_with_pagination(page, category_url, ctx):
     products = []

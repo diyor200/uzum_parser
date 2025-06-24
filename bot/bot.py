@@ -2,7 +2,6 @@ import asyncio
 import json
 import logging
 import sys
-from os import getenv
 import requests
 
 from aiogram import Bot, Dispatcher, html

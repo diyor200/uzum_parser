@@ -23,21 +23,8 @@
       "with_another_card_price": 46500,
       "discount": "-86%",
       "rating": "4.7",
-      "sold_count": 652,
-      "images": [
-        "https://static.uzum.uz/market/badge-icons/verified.png",
-        "https://static.uzum.uz/market/badge-icons/verified.png",
-        "https://static.uzum.uz/market/badge-icons/verified.png",
-        "https://static.uzum.uz/market/badge-icons/verified.png",
-        "https://static.uzum.uz/market/badge-icons/verified.png",
-        "https://static.uzum.uz/market/badge-icons/verified.png",
-        "https://static.uzum.uz/market/badge-icons/verified.png",
-        "https://static.uzum.uz/market/badge-icons/verified.png",
-        "https://static.uzum.uz/market/badge-icons/verified.png",
-        "https://static.uzum.uz/market/badge-icons/verified.png",
-        "https://static.uzum.uz/market/badge-icons/verified.png",
-        "https://static.uzum.uz/market/badge-icons/verified.png"
-      ],
+      "sold_count": 538,
+      "images": [],
       "seller": {
         "title": "Turbo Mobile",
         "img": "https://images.uzum.uz/cum4kps5j42bjc4dr62g/shop_avatar_56_low.jpg",
@@ -46,19 +33,11 @@
       "products_by_characteristic": [
         {
           "characteristic_type": "image",
-          "characteristic_text": "Oq",
-          "sku_id": 5630376,
-          "selected_value_from_ui": "Oq",
-          "price_with_uzum_card": 41850,
-          "available_count": 652
-        },
-        {
-          "characteristic_type": "image",
           "characteristic_text": "Qora",
           "sku_id": 5630375,
           "selected_value_from_ui": "Qora",
           "price_with_uzum_card": 41850,
-          "available_count": 538
+          "available_count": null
         },
         {
           "characteristic_type": "image",
@@ -88,19 +67,11 @@
       "products_by_characteristic": [
         {
           "characteristic_type": "image",
-          "characteristic_text": "Oq",
-          "sku_id": 5630376,
-          "selected_value_from_ui": "Oq",
-          "price_with_uzum_card": 41850,
-          "available_count": 652
-        },
-        {
-          "characteristic_type": "image",
           "characteristic_text": "Qora",
           "sku_id": 5630375,
           "selected_value_from_ui": "Qora",
           "price_with_uzum_card": 41850,
-          "available_count": 538
+          "available_count": null
         },
         {
           "characteristic_type": "image",
@@ -118,7 +89,7 @@
       "title": "AirPods Pro 2 ANC orginal simsiz Bluetooth quloqchinlari chixol sovg'a",
       "with_uzum_card_price": 142000,
       "with_another_card_price": null,
-      "discount": null,
+      "discount": "",
       "rating": "",
       "sold_count": 50,
       "images": [
@@ -135,7 +106,11 @@
         "https://static.uzum.uz/market/badge-icons/verified.png",
         "https://static.uzum.uz/market/badge-icons/verified.png"
       ],
-      "seller": {},
+      "seller": {
+        "title": "Samo mobile 707",
+        "img": "https://images.uzum.uz/d17trs33uvppu2ac20gg/shop_avatar_56_low.jpg",
+        "rating": ""
+      },
       "products_by_characteristic": []
     }
   },
@@ -146,7 +121,7 @@
       "with_another_card_price": 49000,
       "discount": "-82%",
       "rating": "4.6",
-      "sold_count": 537,
+      "sold_count": 535,
       "images": [
         "https://static.uzum.uz/market/badge-icons/verified.png",
         "https://static.uzum.uz/market/badge-icons/verified.png",
@@ -169,19 +144,11 @@
       "products_by_characteristic": [
         {
           "characteristic_type": "image",
-          "characteristic_text": "Oq",
-          "sku_id": 3116418,
-          "selected_value_from_ui": "Oq",
-          "price_with_uzum_card": 44100,
-          "available_count": 537
-        },
-        {
-          "characteristic_type": "image",
           "characteristic_text": "Qora",
           "sku_id": 3784533,
           "selected_value_from_ui": "Qora",
           "price_with_uzum_card": 44100,
-          "available_count": 657
+          "available_count": null
         }
       ]
     }
