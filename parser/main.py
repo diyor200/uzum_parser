@@ -181,7 +181,7 @@ def parse_product(url: str, ctx) -> Dict[str, Any]:
 
 def main():
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=False, slow_mo=100)
+        browser = pw.chromium.launch(headless=True)
 
         context = browser.new_context()
         page = context.new_page()
