@@ -2,38 +2,16 @@ import json
 from urllib.parse import urljoin
 from playwright.sync_api import sync_playwright, TimeoutError
 
-import logging
-import re
 import time
 from typing import Dict, List, Optional, Any
 from urllib.parse import urlparse, parse_qs
 
+from utils import extract_num, to_safe_url
 
 BASE_URL = "https://uzum.uz"
 start_url = "https://uzum.uz/uz"
 category_links = []
 
-# Fallback extract_num if helpers.py isn't used
-def extract_num(text: str) -> Optional[int]:
-    if isinstance(text, (int, float)):
-        return int(text)
-    if not isinstance(text, str):
-        return None
-    match = re.search(r'\d+', text.replace(' ', ''))
-    return int(match.group(0)) if match else None
-
-def to_safe_url(url: str) -> str:
-    parsed = urlparse(url)
-    parts = parsed.path.split("/")
-    if "product" in parts:
-        product_part = parts[-1]
-        if "-" in product_part:
-            product_id = product_part.split("-")[-1]
-        else:
-            product_id = product_part
-        query = parsed.query
-        return f"https://uzum.uz/uz/product/{product_id}?{query}" if query else f"https://uzum.uz/uz/product/{product_id}"
-    return url
 
 def wait_for_variant_update_by_selector(wrapper_selector, expected_label: str):
     for _ in range(30):  # Retry for ~3 seconds
@@ -42,10 +20,26 @@ def wait_for_variant_update_by_selector(wrapper_selector, expected_label: str):
             if is_active:
                 return True
         except Exception as e:
-            logging.warning("exception:  %s", e)
+            print("exception: ", e)
             pass
         time.sleep(0.1)
     raise TimeoutError(f"❌ Timeout waiting for characteristic '{expected_label}' to activate.")
+
+def extract_price(page):
+    # First try default selector
+    selectors = [
+        ".TitleLBold.discount-price .currency.price",
+        '[data-test-id="text__product-price"]'
+    ]
+    for selector in selectors:
+        try:
+            price_loc = page.locator(selector)
+            price_loc.wait_for(state="visible", timeout=2000)
+            return extract_num(price_loc.inner_text())
+        except:
+            continue
+    return None
+
 
 def parse_product(url: str, ctx) -> Dict[str, Any]:
     result: Dict[str, Any] = {}
@@ -57,15 +51,17 @@ def parse_product(url: str, ctx) -> Dict[str, Any]:
     def safe_inner_text(selector: str, default=None) -> Optional[str]:
         try:
             loc = page.locator(selector)
+            if loc.count() == 0:
+                return default
             loc.wait_for(state="visible", timeout=4000)
             return loc.inner_text().strip()
         except Exception as e:
-            logging.warning("exception getting %s:", selector, e)
+            print(f"exception getting: {selector}", e)
             return default
 
-    logging.info("🔍 Parsing static product data...")
+    print("🔍 Parsing static product data...")
     result["title"] = safe_inner_text("h1", "N/A")
-    result["with_uzum_card_price"] = extract_num(safe_inner_text(".TitleLBold.discount-price .currency.price"))
+    result["with_uzum_card_price"] = extract_price(page)
     result["with_another_card_price"] = extract_num(
         safe_inner_text(".BodyMRegular.payment-option .currency.alternative-price"))
     result["discount"] = safe_inner_text(".TitleLBold.discount-price .BodySRegular.discount")
@@ -75,7 +71,7 @@ def parse_product(url: str, ctx) -> Dict[str, Any]:
         banner = page.locator('.banner [data-test-id="text__product-banner"]')
         result["sold_count"] = extract_num(banner.first.inner_text()) if banner.count() > 0 else 0
     except Exception as e:
-        logging.warning("exception: %s", e)
+        print("exception:", e)
         result["sold_count"] = None
 
     try:
@@ -83,14 +79,15 @@ def parse_product(url: str, ctx) -> Dict[str, Any]:
         result["images"] = [
             img.get_attribute("src")
             for img in images.all()
-            if img.get_attribute("src") and not img.get_attribute("src").endswith(".svg")
+            if img.get_attribute("src") and not img.get_attribute("src").endswith(".svg") and img.get_attribute("src").startswith("https://static.uzum.uz")
         ]
     except Exception as e:
-        logging.warning("exception: %s", e)
+        print("exception:", e)
         result["images"] = []
 
     try:
         seller = page.locator(".seller .info")
+        seller.scroll_into_view_if_needed()
         seller.wait_for(state="visible", timeout=8000)
         result["seller"] = {
             "title": seller.locator(".info-container h3").inner_text().strip(),
@@ -98,10 +95,10 @@ def parse_product(url: str, ctx) -> Dict[str, Any]:
             "rating": seller.locator('[data-test-id="text__shop-rating-value"]').inner_text().strip()
         }
     except Exception as e:
-        logging.warning("exception: %s", e)
+        print("exception:", e)
         result["seller"] = {}
 
-    logging.info("\n🔁 Parsing variant options (text and image)...")
+    print("\n🔁 Parsing variant options (text and image)...")
     variant_items_text = page.locator('div[data-test-id="text_characteristic"]')
     variant_items_image = page.locator('div[data-test-id="image_characteristic"]')
     variant_items = [("text", variant_items_text.nth(i)) for i in range(variant_items_text.count())] + \
@@ -122,7 +119,7 @@ def parse_product(url: str, ctx) -> Dict[str, Any]:
             is_disabled = "disabled" in wrapper_class
 
             if is_disabled is not None and is_disabled:
-                logging.info(f"🚫 Sold out: {label}")
+                print(f"🚫 Sold out: {label}")
                 variants.append({
                     "characteristic_type": variant_type,
                     "characteristic_text": label,
@@ -136,14 +133,14 @@ def parse_product(url: str, ctx) -> Dict[str, Any]:
             is_active = wrapper.evaluate("el => el.classList.contains('active')")
 
             if index == 0:
-                logging.info(f"✔ Already selected: {label}")
+                print(f"✔ Already selected: {label}")
             elif not is_active or label != current_selected:
-                logging.info(f"👉 Clicking: {label}")
+                print(f"👉 Clicking: {label}")
                 el.scroll_into_view_if_needed()
                 el.click(force=True)
                 wait_for_variant_update_by_selector(wrapper, label)
             else:
-                logging.info(f"✔ Already selected: {label}")
+                print(f"✔ Already selected: {label}")
 
             parsed = parse_qs(urlparse(page.url).query)
             sku_id = int(parsed["skuId"][0]) if "skuId" in parsed else None
@@ -158,7 +155,7 @@ def parse_product(url: str, ctx) -> Dict[str, Any]:
                     banner_text = banners.nth(0).locator('[data-test-id="text__product-banner"]').inner_text().strip()
                     available = extract_num(banner_text)
                 except Exception as e:
-                    logging.warning("exception: %s", e)
+                    print("exception:", e)
 
 
             selected_ui_value = safe_inner_text('[data-test-id="text__selected-sku-value"]')
@@ -172,10 +169,10 @@ def parse_product(url: str, ctx) -> Dict[str, Any]:
                 "available_count": available,
             })
 
-            logging.info(f"✅ {label}: price={price}, available={available}, sku={sku_id}")
+            print(f"✅ {label}: price={price}, available={available}, sku={sku_id}")
 
         except Exception as e:
-            logging.warning(f"❌ Error on option {index} ({variant_type}): %s", e)
+            print(f"❌ Error on option {index} ({variant_type}):", e)
             continue
 
     result["products_by_characteristic"] = variants
@@ -205,11 +202,11 @@ def main():
                     if href:
                         full_url = urljoin(BASE_URL, href)
                         category_links.append(full_url)
-                        logging.info(f"\n[{i+1}] Scraping category: {full_url}")
+                        print(f"\n[{i+1}] Scraping category: {full_url}")
                         scrape_category_with_pagination(page, full_url, context)
                         break
             except Exception as e:
-                logging.warning("Error clicking category: %s", e)
+                print("Error clicking category:", e)
 
         browser.close()
 
@@ -218,19 +215,19 @@ def scrape_category_with_pagination(page, category_url, ctx):
     current_page = 1
     adult_button = False
 
-    logging.info("beginning parsing products ...")
+    print("beginning parsing products ...")
     while True:
         if current_page == 2:
             break
 
         paginated_url = f"{category_url}?currentPage={current_page}"
-        logging.info(f" → Page {current_page}: {paginated_url}")
+        print(f" → Page {current_page}: {paginated_url}")
         page.goto(paginated_url, wait_until="load")
-        logging.info("page fully loaded!")
+        print("page fully loaded!")
         # Check for the "no products" block
         try:
             page.wait_for_selector('div[data-test-id="block__empty-page"]', timeout=3000)
-            logging.info(" ⚠️ No more products on this page. Ending pagination.")
+            print(" ⚠️ No more products on this page. Ending pagination.")
             break
         except TimeoutError:
             pass  # No empty block, continue
@@ -240,16 +237,21 @@ def scrape_category_with_pagination(page, category_url, ctx):
             try:
                 button = page.query_selector("#notification button.ui-button.solid--red")
                 if button:
-                    logging.info("Clicking notification close button...")
+                    print("Clicking notification close button...")
                     button.click()
                     adult_button = True
                     continue
             except Exception as e:
-                logging.warning("Notification button error: %s", e)
+                print("Notification button error:", e)
 
         # Extract product cards
+        try:
+            page.wait_for_selector(selector='div#category-products a[data-test-id="product-card--default"]', timeout=3000)
+        except Exception as e:
+            print("exception: ", e)
+
         product_cards = page.query_selector_all('div#category-products a[data-test-id="product-card--default"]')
-        logging.info(f"🛒 Found {len(product_cards)} products.")
+        print(f"🛒 Found {len(product_cards)} products.")
 
         products_url_in_one_category = []
         for i, card in enumerate(product_cards):
@@ -257,11 +259,11 @@ def scrape_category_with_pagination(page, category_url, ctx):
                 href = card.get_attribute("href")
                 if href:
                     product_url = urljoin(BASE_URL, href)
-                    # logging.info()(f" → Parsing product: {product_url}")
+                    # print()(f" → Parsing product: {product_url}")
                     detail = parse_product(url=product_url, ctx=ctx)
                     products.append({i+1: detail})
             except Exception as e:
-                logging.warning("Error parsing product: %s", e)
+                print("Error parsing product:", e)
                 continue
 
             if i == 4:
@@ -270,9 +272,9 @@ def scrape_category_with_pagination(page, category_url, ctx):
         current_page += 1
         time.sleep(1)
 
-    with open("product.json", "w", encoding="utf-8") as f:
+    with open("../parse_category/product.json", "w", encoding="utf-8") as f:
         json.dump(products, f, ensure_ascii=False, indent=2)
 
+
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
     main()
