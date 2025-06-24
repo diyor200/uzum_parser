@@ -6,8 +6,7 @@ import time
 from typing import Dict, List, Optional, Any
 from urllib.parse import urlparse, parse_qs
 
-from parser.utils import send_to_telegram
-from utils import extract_num, to_safe_url
+from utils import extract_num, to_safe_url, send_to_telegram
 
 BASE_URL = "https://uzum.uz"
 start_url = "https://uzum.uz/uz"
