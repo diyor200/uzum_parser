@@ -5,10 +5,10 @@ FROM mcr.microsoft.com/playwright/python:v1.52.0
 WORKDIR /app
 
 # Copy app files
-COPY .. /app
+COPY . /app
 
 # Install dependencies (if you have requirements.txt)
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Optional: if you use uvicorn for dev
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python3", "main.py"]
